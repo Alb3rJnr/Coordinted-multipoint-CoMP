@@ -1,6 +1,6 @@
 # Co-ordinated Beamforming for Interference Management in CoMP-Based Integrated Terrestrial and Non-Terrestrial Network
 
-This repository contains MATLAB simulations for a final year project at Kyambogo University by Arnold Odongo, submitted in June 2025 under the supervision of Dr. Denise J. Birabwa. The project analyzes the Signal-to-Interference-plus-Noise Ratio (SINR) performance of Coordinated Multi-Point (CoMP) and Non-CoMP beamforming techniques in an Integrated Terrestrial and Non-Terrestrial Network (ITNTN). The simulations compare Regularized Zero-Forcing (RZF), Zero-Forcing (ZF), and Maximum Ratio Transmission (MRT) precoding methods under varying user counts..
+This repository contains MATLAB simulations for a final year project at Kyambogo University by Arnold Odongo and Hafswa Ndagire Babirye, submitted in June 2025 under the supervision of Dr. Denise J. Birabwa. The project analyzes the Signal-to-Interference-plus-Noise Ratio (SINR) performance of Coordinated Multi-Point (CoMP) and Non-CoMP beamforming techniques in an Integrated Terrestrial and Non-Terrestrial Network (ITNTN). The simulations compare Regularized Zero-Forcing (RZF), Zero-Forcing (ZF), and Maximum Ratio Transmission (MRT) precoding methods under varying user counts..
 
 ## Project Overview
 
