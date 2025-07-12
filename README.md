@@ -4,7 +4,7 @@ This repository contains MATLAB simulations for a final year project at Kyambogo
 
 ## Project Overview
 
-The project models a two-tier Random Access Network (RAN) with 4 base stations (3 Macro Base Stations (MBS) and 1 Low-Altitude Platform Base Station (LAP-BS)) in a 5 km x 5 km area. Users move according to a random walk mobility model. The simulations evaluate median SINR as a function of the number of users (10, 20, 30, 40, 50) over 1000 time slots, considering path loss, shadowing, and fading (Rayleigh for MBS, Rician for LAP-BS). The work addresses interference management challenges in ITNTNs, focusing on co-tier and cross-tier interference.
+The project models a two-tier Random Access Network (RAN) with 4 base stations (3 Macro Base Stations (MBS) and 1 Low-Altitude Platform Base Station (LAP-BS)) in a 5 km x 5 km area. Users move according to a random walk mobility model. The simulations evaluate Complementary Cumulative Distributon Function(CCDF) of SINR as well as median SINR as a function of the number of users (10, 20, 30, 40, 50) over 1000 time slots, considering path loss, shadowing, and fading (Rayleigh for MBS, Rician for LAP-BS). The work addresses interference management challenges in ITNTNs, focusing on co-tier and cross-tier interference.
 
 ## Files
 
