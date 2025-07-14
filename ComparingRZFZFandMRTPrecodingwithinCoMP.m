@@ -1,7 +1,6 @@
 % MATLAB Simulation for Coordinated Beamforming (CoMP)
 % Comparing RZF, ZF, and MRT Precoding within CoMP
 
-
 % Clear workspace and command window
 clear;
 clc;
@@ -16,7 +15,7 @@ total_antennas = num_BS * num_antennas_per_BS; % Total antennas in the cluster
 % Simulation area (square)
 area_size_m = 5000; % 5 km x 5 km
 
-% Coverage Radii in meters)
+% Coverage Radii in meters
 mbs_coverage_radius_m = 1000; % 1 km
 lap_coverage_radius_m = 2000; % 2 km
 
@@ -35,6 +34,12 @@ bs_locations = [
 
 % User Locations [x, y] in meters - Randomly distributed
 user_locations = area_size_m * rand(num_users, 2);
+
+% Initialize mobility status (60% mobile, 40% stationary)
+num_mobile_users = floor(0.6 * num_users); % 60% of users are mobile
+mobile_user_indices = randperm(num_users, num_mobile_users); % Randomly select mobile users
+is_mobile_user = zeros(1, num_users); % 1 for mobile, 0 for stationary
+is_mobile_user(mobile_user_indices) = 1;
 
 % Random Walk Mobility Parameters
 v_min = 1; % Minimum speed (m/s)
@@ -69,7 +74,7 @@ c_max = 100; % Maximum RZF regularization
 max_simultaneous_users_comp = total_antennas; %
 
 %% Simulation Parameters
-num_time_slots_to_simulate =    1000; % Number of time slots
+num_time_slots_to_simulate = 1000; % Number of time slots
 
 %% Data Storage for Multi-Time Slot Simulation
 all_scheduled_sinrs_linear_comp_rzf = [];
@@ -105,30 +110,32 @@ hold off;
 fprintf('Starting Multi-Time Slot Simulation (%d slots) for CoMP scenarios with Random Walk mobility and binary scheduling...\n', num_time_slots_to_simulate);
 for time_slot = 1:num_time_slots_to_simulate
     fprintf('\n--- Time Slot %d ---\n', time_slot);
-    %% Update User Locations (Random Walk Model)
+    %% Update User Locations (Random Walk Model for mobile users only)
     % Generate random directions and speeds
     theta_i = 2 * pi * rand(num_users, 1); % Random direction in [0, 2*pi]
     v_i = v_min + (v_max - v_min) * rand(num_users, 1); % Random speed in [v_min, v_max]
     % Update locations
     for i = 1:num_users
-        x_new = user_locations(i, 1) + (v_i(i) / v_max) * D_max * cos(theta_i(i));
-        y_new = user_locations(i, 2) + (v_i(i) / v_max) * D_max * sin(theta_i(i));
-        % Boundary reflection
-        if x_new < 0
-            x_new = -x_new; % Reflect off x=0
-            theta_i(i) = pi - theta_i(i); % Reverse x-component of direction
-        elseif x_new > area_size_m
-            x_new = 2 * area_size_m - x_new; % Reflect off x=area_size_m
-            theta_i(i) = pi - theta_i(i);
+        if is_mobile_user(i) % Update only mobile users
+            x_new = user_locations(i, 1) + (v_i(i) / v_max) * D_max * cos(theta_i(i));
+            y_new = user_locations(i, 2) + (v_i(i) / v_max) * D_max * sin(theta_i(i));
+            % Boundary reflection
+            if x_new < 0
+                x_new = -x_new; % Reflect off x=0
+                theta_i(i) = pi - theta_i(i); % Reverse x-component of direction
+            elseif x_new > area_size_m
+                x_new = 2 * area_size_m - x_new; % Reflect off x=area_size_m
+                theta_i(i) = pi - theta_i(i);
+            end
+            if y_new < 0
+                y_new = -y_new; % Reflect off y=0
+                theta_i(i) = -theta_i(i); % Reverse y-component of direction
+            elseif y_new > area_size_m
+                y_new = 2 * area_size_m - y_new; % Reflect off y=area_size_m
+                theta_i(i) = -theta_i(i);
+            end
+            user_locations(i, :) = [x_new, y_new];
         end
-        if y_new < 0
-            y_new = -y_new; % Reflect off y=0
-            theta_i(i) = -theta_i(i); % Reverse y-component of direction
-        elseif y_new > area_size_m
-            y_new = 2 * area_size_m - y_new; % Reflect off y=area_size_m
-            theta_i(i) = -theta_i(i);
-        end
-        user_locations(i, :) = [x_new, y_new];
     end
     % Ensure users stay within bounds (additional check)
     user_locations(:, 1) = max(0, min(area_size_m, user_locations(:, 1)));
