@@ -1,7 +1,6 @@
 % MATLAB Simulation to compare SINR variation with increasing number of users
 % Compares CoMP RZF and Non-CoMP RZF performance
 
-
 clear;
 clc;
 close all;
@@ -66,7 +65,7 @@ max_simultaneous_users_per_bs_noncomp = num_antennas_per_BS;
 
 %% Simulation Parameters (Varying Number of Users and Fixed Time Slots)
 num_users_range = [10, 20, 30, 40, 50]; % Range of user numbers to simulate
-num_time_slots_to_simulate =   1000; % Fixed number of time slots for each user count
+num_time_slots_to_simulate = 1000; % Fixed number of time slots for each user count
 
 %% Data Storage for SINR vs. Number of Users
 median_sinr_comp_rzf_vs_users = zeros(1, length(num_users_range));
@@ -83,6 +82,15 @@ for user_count_idx = 1:length(num_users_range)
     current_user_locations_comp = area_size_m * rand(current_num_users, 2);
     current_user_locations_noncomp = area_size_m * rand(current_num_users, 2);
 
+    % Initialize mobility status (60% mobile, 40% stationary)
+    num_mobile_users = floor(0.6 * current_num_users); % 60% of users are mobile
+    mobile_user_indices_comp = randperm(current_num_users, num_mobile_users); % Randomly select mobile users for CoMP
+    mobile_user_indices_noncomp = randperm(current_num_users, num_mobile_users); % Randomly select mobile users for Non-CoMP
+    is_mobile_user_comp = zeros(1, current_num_users); % 1 for mobile, 0 for stationary
+    is_mobile_user_noncomp = zeros(1, current_num_users); % 1 for mobile, 0 for stationary
+    is_mobile_user_comp(mobile_user_indices_comp) = 1;
+    is_mobile_user_noncomp(mobile_user_indices_noncomp) = 1;
+
     % Data Storage for this user count simulation
     all_scheduled_sinrs_linear_comp_rzf_current = [];
     all_scheduled_sinrs_linear_noncomp_rzf_current = [];
@@ -91,28 +99,30 @@ for user_count_idx = 1:length(num_users_range)
     fprintf('  Starting CoMP RZF simulation for %d users (%d time slots)...\n', current_num_users, num_time_slots_to_simulate);
 
     for time_slot = 1:num_time_slots_to_simulate
-        % Update User Locations (Random Walk Model)
+        % Update User Locations (Random Walk Model for mobile users only)
         theta_i_comp = 2 * pi * rand(current_num_users, 1); % Random direction in [0, 2*pi]
         v_i_comp = v_min + (v_max - v_min) * rand(current_num_users, 1); % Random speed in [v_min, v_max]
         for i = 1:current_num_users
-            x_new = current_user_locations_comp(i, 1) + (v_i_comp(i) / v_max) * D_max * cos(theta_i_comp(i));
-            y_new = current_user_locations_comp(i, 2) + (v_i_comp(i) / v_max) * D_max * sin(theta_i_comp(i));
-            % Boundary reflection
-            if x_new < 0
-                x_new = -x_new;
-                theta_i_comp(i) = pi - theta_i_comp(i);
-            elseif x_new > area_size_m
-                x_new = 2 * area_size_m - x_new;
-                theta_i_comp(i) = pi - theta_i_comp(i);
+            if is_mobile_user_comp(i) % Update only mobile users
+                x_new = current_user_locations_comp(i, 1) + (v_i_comp(i) / v_max) * D_max * cos(theta_i_comp(i));
+                y_new = current_user_locations_comp(i, 2) + (v_i_comp(i) / v_max) * D_max * sin(theta_i_comp(i));
+                % Boundary reflection
+                if x_new < 0
+                    x_new = -x_new;
+                    theta_i_comp(i) = pi - theta_i_comp(i);
+                elseif x_new > area_size_m
+                    x_new = 2 * area_size_m - x_new;
+                    theta_i_comp(i) = pi - theta_i_comp(i);
+                end
+                if y_new < 0
+                    y_new = -y_new;
+                    theta_i_comp(i) = -theta_i_comp(i);
+                elseif y_new > area_size_m
+                    y_new = 2 * area_size_m - y_new;
+                    theta_i_comp(i) = -theta_i_comp(i);
+                end
+                current_user_locations_comp(i, :) = [x_new, y_new];
             end
-            if y_new < 0
-                y_new = -y_new;
-                theta_i_comp(i) = -theta_i_comp(i);
-            elseif y_new > area_size_m
-                y_new = 2 * area_size_m - y_new;
-                theta_i_comp(i) = -theta_i_comp(i);
-            end
-            current_user_locations_comp(i, :) = [x_new, y_new];
         end
         current_user_locations_comp(:, 1) = max(0, min(area_size_m, current_user_locations_comp(:, 1)));
         current_user_locations_comp(:, 2) = max(0, min(area_size_m, current_user_locations_comp(:, 2)));
@@ -282,27 +292,29 @@ for user_count_idx = 1:length(num_users_range)
     fprintf('  Starting Non-CoMP RZF simulation for %d users (%d time slots)...\n', current_num_users, num_time_slots_to_simulate);
 
     for time_slot = 1:num_time_slots_to_simulate
-        % Update User Locations (Random Walk Model)
+        % Update User Locations (Random Walk Model for mobile users only)
         theta_i_noncomp = 2 * pi * rand(current_num_users, 1);
         v_i_noncomp = v_min + (v_max - v_min) * rand(current_num_users, 1);
         for i = 1:current_num_users
-            x_new = current_user_locations_noncomp(i, 1) + (v_i_noncomp(i) / v_max) * D_max * cos(theta_i_noncomp(i));
-            y_new = current_user_locations_noncomp(i, 2) + (v_i_noncomp(i) / v_max) * D_max * sin(theta_i_noncomp(i));
-            if x_new < 0
-                x_new = -x_new;
-                theta_i_noncomp(i) = pi - theta_i_noncomp(i);
-            elseif x_new > area_size_m
-                x_new = 2 * area_size_m - x_new;
-                theta_i_noncomp(i) = pi - theta_i_noncomp(i);
+            if is_mobile_user_noncomp(i) % Update only mobile users
+                x_new = current_user_locations_noncomp(i, 1) + (v_i_noncomp(i) / v_max) * D_max * cos(theta_i_noncomp(i));
+                y_new = current_user_locations_noncomp(i, 2) + (v_i_noncomp(i) / v_max) * D_max * sin(theta_i_noncomp(i));
+                if x_new < 0
+                    x_new = -x_new;
+                    theta_i_noncomp(i) = pi - theta_i_noncomp(i);
+                elseif x_new > area_size_m
+                    x_new = 2 * area_size_m - x_new;
+                    theta_i_noncomp(i) = pi - theta_i_noncomp(i);
+                end
+                if y_new < 0
+                    y_new = -y_new;
+                    theta_i_noncomp(i) = -theta_i_noncomp(i);
+                elseif y_new > area_size_m
+                    y_new = 2 * area_size_m - y_new;
+                    theta_i_noncomp(i) = -theta_i_noncomp(i);
+                end
+                current_user_locations_noncomp(i, :) = [x_new, y_new];
             end
-            if y_new < 0
-                y_new = -y_new;
-                theta_i_noncomp(i) = -theta_i_noncomp(i);
-            elseif y_new > area_size_m
-                y_new = 2 * area_size_m - y_new;
-                theta_i_noncomp(i) = -theta_i_noncomp(i);
-            end
-            current_user_locations_noncomp(i, :) = [x_new, y_new];
         end
         current_user_locations_noncomp(:, 1) = max(0, min(area_size_m, current_user_locations_noncomp(:, 1)));
         current_user_locations_noncomp(:, 2) = max(0, min(area_size_m, current_user_locations_noncomp(:, 2)));
