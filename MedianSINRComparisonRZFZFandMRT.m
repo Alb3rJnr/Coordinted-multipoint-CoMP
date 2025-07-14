@@ -78,6 +78,11 @@ for user_count_idx = 1:length(num_users_range)
     % Initialize user locations for CoMP
     current_user_locations = area_size_m * rand(current_num_users, 2);
 
+    % Determine mobile and stationary users (60% mobile, 40% stationary)
+    num_mobile_users = round(0.6 * current_num_users);
+    mobile_user_indices = randperm(current_num_users, num_mobile_users);
+    stationary_user_indices = setdiff(1:current_num_users, mobile_user_indices);
+
     % Data Storage for this user count simulation
     all_scheduled_sinrs_linear_comp_rzf_current = [];
     all_scheduled_sinrs_linear_comp_zf_current = [];
@@ -87,10 +92,10 @@ for user_count_idx = 1:length(num_users_range)
     fprintf('  Starting CoMP simulation for %d users (%d time slots)...\n', current_num_users, num_time_slots_to_simulate);
 
     for time_slot = 1:num_time_slots_to_simulate
-        % Update User Locations (Random Walk Model)
+        % Update User Locations (Random Walk Model for mobile users only)
         theta_i = 2 * pi * rand(current_num_users, 1); % Random direction in [0, 2*pi]
         v_i = v_min + (v_max - v_min) * rand(current_num_users, 1); % Random speed in [v_min, v_max]
-        for i = 1:current_num_users
+        for i = mobile_user_indices % Update only mobile users
             x_new = current_user_locations(i, 1) + (v_i(i) / v_max) * D_max * cos(theta_i(i));
             y_new = current_user_locations(i, 2) + (v_i(i) / v_max) * D_max * sin(theta_i(i));
             % Boundary reflection
@@ -346,7 +351,7 @@ plot(num_users_range, median_sinr_comp_mrt_vs_users, 'm-*', 'DisplayName', 'CoMP
 
 xlabel('Number of Users');
 ylabel('Median SINR (dB)');
-title('Median SINR vs. Number of Users with Random Walk Mobility (CoMP Beamforming)');
+title('Median SINR vs. Number of Users with 60% Mobile Users (CoMP Beamforming)');
 legend;
 grid on;
 hold off;
